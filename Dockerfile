@@ -60,5 +60,5 @@ RUN mkdir -p /data && chown -R node:node /data
 USER node
 WORKDIR /home/node
 EXPOSE 5678
-# Bind na 0.0.0.0 i Railway PORT (ako PORT nije postavljen, koristi 5678)
-CMD ["bash","-lc","n8n start --host 0.0.0.0 --port ${PORT:-5678}"]
+
+CMD ["bash","-lc","echo \"PORT=$PORT\" ; exec n8n start --host 0.0.0.0 --port \"$PORT\""]

@@ -68,4 +68,4 @@ EXPOSE 5678
 
 # ====== Start n8n ======
 # Varijanta A (minimal change, kao kod tebe + bind na sve interfejse):
-CMD export N8N_PORT=$PORT && n8n start
+CMD sh -lc 'export N8N_PORT=${PORT:-5678}; n8n start --host 0.0.0.0 --port "$N8N_PORT"'

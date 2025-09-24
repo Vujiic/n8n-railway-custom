@@ -61,4 +61,4 @@ USER node
 WORKDIR /home/node
 EXPOSE 5678
 
-CMD ["bash","-lc","echo \"PORT=$PORT\" ; exec n8n start --host 0.0.0.0 --port \"$PORT\""]
+CMD ["bash","-lc","echo \"PORT=$PORT\" ; N8N_PORT=$PORT exec n8n start --host 0.0.0.0"]

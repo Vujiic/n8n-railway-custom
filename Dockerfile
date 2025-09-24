@@ -47,7 +47,8 @@ RUN python3 -m venv /opt/py && \
       numpy==1.26.4 \
       pandas==2.2.2 \
       scikit-learn==1.4.2 \
-      prophet==1.1.5
+      prophet==1.1.5 \
+      tensorflow==2.15.0
 
 # n8n Python (Beta) node -> koristi naš venv
 ENV N8N_CODE_NODE_PYTHON_PATH=/opt/py/bin/python \

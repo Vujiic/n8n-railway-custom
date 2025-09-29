@@ -1,34 +1,9 @@
-# Debian baza (bookworm) umesto Alpine
+# ---------------------------------------------------
+# Base: Debian (bookworm), ne koristimo Alpine/apk
+# ---------------------------------------------------
 FROM node:22-bookworm
 
-# ---------- ARGS ----------
-ARG N8N_VERSION=latest
-ARG PGPASSWORD
-ARG PGHOST
-ARG PGPORT
-ARG PGDATABASE
-ARG PGUSER
-ARG USERNAME
-ARG PASSWORD
-ARG ENCRYPTIONKEY
-
-# ---------- ENV (kao kod tebe) ----------
-ENV N8N_ENCRYPTION_KEY=$ENCRYPTIONKEY
-ENV DB_TYPE=postgresdb
-ENV DB_POSTGRESDB_DATABASE=$PGDATABASE
-ENV DB_POSTGRESDB_HOST=$PGHOST
-ENV DB_POSTGRESDB_PORT=$PGPORT
-ENV DB_POSTGRESDB_USER=$PGUSER
-ENV DB_POSTGRESDB_PASSWORD=$PGPASSWORD
-ENV N8N_BASIC_AUTH_ACTIVE=true
-ENV N8N_BASIC_AUTH_USER=$USERNAME
-ENV N8N_BASIC_AUTH_PASSWORD=$PASSWORD
-# Bez volumena ćemo koristiti /data kao user folder u samom containeru
-ENV N8N_USER_FOLDER=/data
-ENV PYTHONUNBUFFERED=1
-
 # ---------- OS paketi ----------
-# python + toolchain (za prophet), graphicsmagick/tzdata kao i ranije
 USER root
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 python3-venv python3-dev \
@@ -38,6 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
  && rm -rf /var/lib/apt/lists/*
 
 # ---------- n8n ----------
+ARG N8N_VERSION=latest
 RUN npm_config_user=root npm install --location=global n8n@${N8N_VERSION}
 
 # ---------- Python venv + paketi ----------
@@ -54,12 +30,22 @@ RUN python3 -m venv /opt/py && \
 ENV N8N_CODE_NODE_PYTHON_PATH=/opt/py/bin/python \
     N8N_CODE_NODE_PYTHON_ALLOW_GLOBAL=true
 
-# pripremi /data (iako nema volume, treba write perms)
+# n8n opšta podešavanja
+ENV N8N_USER_FOLDER=/data \
+    PYTHONUNBUFFERED=1 \
+    N8N_DIAGNOSTICS_ENABLED=false
+
+# pripremi /data i dozvole
 RUN mkdir -p /data && chown -R node:node /data
 
-# ---------- Start ----------
+# ---------- Entrypoint ----------
+# fajl stoji pored Dockerfile-a u repo-u
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 USER node
 WORKDIR /home/node
 EXPOSE 5678
 
-CMD ["bash","-lc","echo \"PORT=$PORT\" ; N8N_PORT=$PORT exec n8n start --host 0.0.0.0"]
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+CMD ["n8n", "start", "--host", "0.0.0.0"]
